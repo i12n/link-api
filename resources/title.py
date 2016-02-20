@@ -18,8 +18,10 @@ class Title(Resource):
         args = parser.parse_args()
         url = args.url
         try:
+            # 为了解决 https 的问题使用 requests
             url_request = requests.get(url)
-            tree = fromstring(url_request.content)
+            # 处理utf gb2312 使用request.text ，但是 request.content 速度更快，参考 http://xiaorui.cc/2016/02/19/%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90python-requests%E5%BA%93%E4%B8%AD%E6%96%87%E7%BC%96%E7%A0%81%E9%97%AE%E9%A2%98/
+            tree = fromstring(url_request.text)
             title = tree.find(".//title")
             if title is not None:
                 title = title.text
@@ -27,20 +29,13 @@ class Title(Resource):
                 title = ''
             description = tree.find(".//meta[@name='description']")
             if description is not None:
-                print description.get('content')
                 description = description.get('content')
             else: 
                 description = ''
 
+
             link = {'link': {'url':url, 'title':title, 'description':description}}
-            data = json.dumps(link, ensure_ascii=False)
-            response = make_response(data)
-            response.headers['content-type'] = 'application/json; charset=utf-8'
-            return response
+            return link
         except:
             return {'error': 'Not found'}, 404
 
-    def post(self):
-        return {'hello':'123'}
-        
-        
